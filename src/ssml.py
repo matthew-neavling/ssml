@@ -16,10 +16,11 @@ class SSML:
     def cast(
         input: TextIOWrapper,
         sentence_pattern: re.Pattern = SENTENCE_PATTERN,
+        indent:bool=False,
         speaker: str = "en-US-AvaMultilingualNeural",
         leading_silence: Optional[str] = "1s",
         trailing_silence: Optional[str] = "1s",
-    ):
+    )->str:
         """Cast text input into an SSML hierarchy.
 
         :param input: TextIOWrapper text to cast to SSML
@@ -74,5 +75,9 @@ class SSML:
             s = ET.SubElement(p, "s")
             s.text = sentence.strip()
 
+        # Optionally indent XML for pretty printing
+        if indent:
+            ET.indent(speak)
+
         # deserialize ElementTree to string
-        return ET.tostring(speak)
+        return ET.tostring(speak, encoding="unicode")
