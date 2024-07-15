@@ -4,7 +4,7 @@ from typing import Optional
 import xml.etree.ElementTree as ET
 
 SENTENCE_PATTERN = re.compile(r"([^\.]+[\.\!\?])")
-
+SSML_NAMESPACE = {"":"http://www.w3.org/2001/10/synthesis", "mstts":"https://www.w3.org/2001/mstts"}
 
 class SSML:
     def __init__(self, input_bytes: Optional[TextIOWrapper] = None) -> None:
@@ -81,3 +81,34 @@ class SSML:
 
         # deserialize ElementTree to string
         return ET.tostring(speak, encoding="unicode")
+    
+    @staticmethod
+    def modify(input:TextIOWrapper , 
+        speaker: str = "en-US-AvaMultilingualNeural",
+        lexicon_uri:Optional[str]=None)->str:
+        """Modify the speaker or lexicon of an existing SSML file
+        :param input TextIOWrapper:         File containing the SSML hierarchy to modify
+        :param speaker str:                 MS Azure Voice to replace the original voice with.
+        :param lexicon_uri str:             [Optional] lexicon URI to add or substitute.    
+        """
+        
+        tree = ET.parse(input)
+        
+        # Find elements of interest
+        voice = tree.find(".//voice", SSML_NAMESPACE)
+        lexicon = voice.find(".//lexicon", SSML_NAMESPACE)
+
+        if speaker:
+            if voice.attrib["name"] == speaker:
+                # Do nothing if the voices are equivalent
+                pass
+            else: 
+                voice.attrib["name"] = speaker
+
+        if lexicon_uri:
+            # Remove the original lexicon if it already exists
+            if lexicon:
+                voice.remove(lexicon)
+            ET.SubElement(voice ,"lexicon", attrib={"uri":lexicon_uri})
+
+        return ET.tostring(tree.getroot())
