@@ -3,8 +3,12 @@ import re
 from typing import Optional
 import xml.etree.ElementTree as ET
 
-SENTENCE_PATTERN = re.compile(r"([^\.]+[\.\!\?])")
-SSML_NAMESPACES = {"":"http://www.w3.org/2001/10/synthesis", "mstts":"https://www.w3.org/2001/mstts"}
+SENTENCE_PATTERN = re.compile(r"([^\.\!\?]+[\.\!\?])")
+SSML_NAMESPACE = {
+    "": "http://www.w3.org/2001/10/synthesis",
+    "mstts": "https://www.w3.org/2001/mstts",
+}
+
 
 class SSML:
     def __init__(self, input_bytes: Optional[TextIOWrapper] = None) -> None:
@@ -15,12 +19,13 @@ class SSML:
     @staticmethod
     def cast(
         input: TextIOWrapper,
-        sentence_pattern: re.Pattern = SENTENCE_PATTERN,
-        indent:bool=False,
+        pattern: re.Pattern = SENTENCE_PATTERN,
+        indent: bool = False,
         speaker: str = "en-US-AvaMultilingualNeural",
         leading_silence: Optional[str] = "1s",
         trailing_silence: Optional[str] = "1s",
-    )->str:
+        lexicon_uri: Optional[str] = None,
+    ) -> str:
         """Cast text input into an SSML hierarchy.
 
         :param input: TextIOWrapper text to cast to SSML
@@ -42,7 +47,7 @@ class SSML:
             },
         )
 
-        # Specify voice element with required Azure Speech services voice 
+        # Specify voice element with required Azure Speech services voice
         voice = ET.SubElement(speak, "voice", attrib={"name": speaker})
 
         # Add optional leading silence
@@ -68,8 +73,8 @@ class SSML:
         text = "".join(input).strip()
 
         # Find all sentences
-        sentences = sentence_pattern.findall(text)
-        
+        sentences = pattern.findall(text)
+
         # Join each sentence as <s> element to root paragraph
         for sentence in sentences:
             s = ET.SubElement(p, "s")
@@ -81,38 +86,36 @@ class SSML:
 
         # deserialize ElementTree to string
         return ET.tostring(speak, encoding="unicode")
-    
+
     @staticmethod
-    def modify(input:TextIOWrapper , 
+    def modify(
+        input: TextIOWrapper,
         speaker: str = "en-US-AvaMultilingualNeural",
-        lexicon_uri:Optional[str]=None)->str:
+        lexicon_uri: Optional[str] = None,
+    ) -> str:
         """Modify the speaker or lexicon of an existing SSML file
         :param input TextIOWrapper:         File containing the SSML hierarchy to modify
         :param speaker str:                 MS Azure Voice to replace the original voice with.
-        :param lexicon_uri str:             [Optional] lexicon URI to add or substitute.    
+        :param lexicon_uri str:             [Optional] lexicon URI to add or substitute.
         """
-                # Register SSML namespaces
-        for namespace in SSML_NAMESPACES.items():
-            ET.register_namespace(*namespace)
-
 
         tree = ET.parse(input)
-        
+
         # Find elements of interest
-        voice = tree.find(".//voice", SSML_NAMESPACES)
-        lexicon = voice.find(".//lexicon", SSML_NAMESPACES)
+        voice = tree.find(".//voice", SSML_NAMESPACE)
+        lexicon = voice.find(".//lexicon", SSML_NAMESPACE)
 
         if speaker:
             if voice.attrib["name"] == speaker:
                 # Do nothing if the voices are equivalent
                 pass
-            else: 
+            else:
                 voice.attrib["name"] = speaker
 
         if lexicon_uri:
             # Remove the original lexicon if it already exists
             if lexicon:
                 voice.remove(lexicon)
-            ET.SubElement(voice ,"lexicon", attrib={"uri":lexicon_uri})
+            ET.SubElement(voice, "lexicon", attrib={"uri": lexicon_uri})
 
-        return ET.tostring(tree.getroot(), encoding="unicode")
+        return ET.tostring(tree.getroot())

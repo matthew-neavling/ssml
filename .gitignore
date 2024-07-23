@@ -1,4 +1,4 @@
 build/
 dist/
-.venv/
-example*.txt
+.venv
+*.txt
