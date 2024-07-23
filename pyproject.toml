@@ -5,3 +5,6 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ssml"
 version = "0.0.1"
+
+[project.scripts]
+cast = "ssml:cast"
