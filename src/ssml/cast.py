@@ -29,7 +29,7 @@ def cast(
 ):
     stdout = click.get_text_stream("stdout")
     for file in files:
-        ssml = SSML.cast("".join(file.readlines()), indent=indent, lexicon_uri=lexicon_uri, speaker=speaker)
+        ssml = SSML.cast("".join(file.readlines()), indent=indent, lexicon_uri=lexicon_uri, voice=speaker)
         stdout.write(ssml+os.linesep)
 
 if __name__ == '__main__':

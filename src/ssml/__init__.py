@@ -21,7 +21,7 @@ class SSML:
         input: TextIOWrapper,
         pattern: re.Pattern = SENTENCE_PATTERN,
         indent: bool = False,
-        speaker: str = "en-US-AvaMultilingualNeural",
+        voice: str = "en-US-AvaMultilingualNeural",
         leading_silence: Optional[str] = "1s",
         trailing_silence: Optional[str] = "1s",
         lexicon_uri: Optional[str] = None,
@@ -48,7 +48,7 @@ class SSML:
         )
 
         # Specify voice element with required Azure Speech services voice
-        voice = ET.SubElement(speak, "voice", attrib={"name": speaker})
+        voice = ET.SubElement(speak, "voice", attrib={"name": voice})
 
         # Add optional leading silence
         if leading_silence:
@@ -118,4 +118,4 @@ class SSML:
                 voice.remove(lexicon)
             ET.SubElement(voice, "lexicon", attrib={"uri": lexicon_uri})
 
-        return ET.tostring(tree.getroot())
+        return ET.tostring(tree.getroot(), encoding="unicode")
