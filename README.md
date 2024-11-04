@@ -1,6 +1,6 @@
 # ssml
 
-Minimal library for casting text to SSML. 
+Minimal library for casting text to [Microsoft Azure Speech Services SSML](https://learn.microsoft.com/en-us/azure/ai-services/speech-service/speech-synthesis-markup). 
 
 ## Examples
 
